@@ -1,10 +1,11 @@
-import {renderHook} from '@testing-library/react-native';
+import {act, renderHook} from '@testing-library/react-native';
 import 'react-native';
 import {useApp, TITLE_ZERO, TITLE_NOTZERO} from './use-app';
-import {useCounter} from './use-counter';
+import * as useCounter from './use-counter';
 
-jest.mock('./use-counter');
-const mockedUseCounter = jest.mocked(useCounter);
+// jest.mock('./use-counter');
+// const mockedUseCounter = jest.mocked(useCounter);
+const mockedUseCounter = jest.spyOn(useCounter, 'useCounter');
 
 describe('Test useApp()', () => {
   it('initial title', () => {
@@ -27,5 +28,25 @@ describe('Test useApp()', () => {
 
     const {result} = renderHook(() => useApp());
     expect(result.current.title).toBe(TITLE_NOTZERO);
+  });
+});
+
+describe('Test useApp() with counter', () => {
+  beforeAll(() => {
+    mockedUseCounter.mockRestore();
+  });
+
+  it('change title', () => {
+    const {result} = renderHook(() => useApp());
+    expect(result.current.counter.value).toBe(0);
+    expect(result.current.title).toBe(TITLE_ZERO);
+
+    act(() => result.current.counter.increase());
+
+    expect(result.current.title).toBe(TITLE_NOTZERO);
+
+    act(() => result.current.counter.decrease());
+
+    expect(result.current.title).toBe(TITLE_ZERO);
   });
 });
